@@ -159,6 +159,16 @@ def un_pause(robot_ip: str):
         print("Robot unpause error:", e)
     print("Robot unpause response:", response)
 
+# change the robot state to pause
+def pause(robot_ip: str):
+    url = "http://" + robot_ip + "/api/v2.0.0/status"
+    un_pause_parameters = {'state_id': 4}
+    try:
+        response = requests.put(url, headers=headers, json=pause_parameters)
+    except Exception as e:
+        print("Robot pause error:", e)
+    print("Robot pause response:", response)
+
 
 # if there are errors, clear them
 def clear_errors(robot_ip: str):
