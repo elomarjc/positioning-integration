@@ -10,7 +10,7 @@ headers = {
     'Authorization': 'Basic {}'.format(token),
 }
 
-
+#hejmed dig
 def resp_code_successful(code: int):
     return code >= 200 and code < 300
 
