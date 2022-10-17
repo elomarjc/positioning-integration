@@ -14,7 +14,7 @@ import paho.mqtt.client as mqtt  # Paho is a Python library to get data from CV 
 import json  # json is data format to be used for differnt objects (javascript object notation)
 from threading import Thread
 from threading import Lock
-from threading import Timer
+from threading import Timer # Jacob is cool
 
 from PIL import ImageTk  # put a picture (lab map) in the window   (MAC NEED PILLOW LIB.)
 import tkinter  # Python GUI tool, to open a window
