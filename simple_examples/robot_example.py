@@ -149,6 +149,3 @@ if __name__ == "__main__":
 
     print("---set_max_speed to 0.1m/s ------------------")
     set_max_speed(0.1)
-
-
-# hej og goddag fra Andreas
