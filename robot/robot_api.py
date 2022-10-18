@@ -162,7 +162,7 @@ def un_pause(robot_ip: str):
 # change the robot state to pause
 def pause(robot_ip: str): #comment test
     url = "http://" + robot_ip + "/api/v2.0.0/status"
-    un_pause_parameters = {'state_id': 4}
+    pause_parameters = {'state_id': 4}
     try:
         response = requests.put(url, headers=headers, json=pause_parameters)
     except Exception as e:
