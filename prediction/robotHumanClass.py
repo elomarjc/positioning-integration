@@ -1,3 +1,6 @@
+import robot.robot_api             
+            
+
              # controller -> move method:
 class robot: # finalXY -> self.move_x_entry.get()
              # robotID -> self.id_option_value.get()
@@ -16,9 +19,22 @@ class robot: # finalXY -> self.move_x_entry.get()
         self.currentY : float
         self.collisionTime: float
 
-    def neededSpeedReference (self):  #input the time to collide or distance to collide and outpu define the speed that the robot must have
-        pass
+    def neededSpeedReference (tc: float, absolutMaxSpeed:float, absolutMinSpeed:float, robot_ip:str):  #input the time to collide or distance to collide and outpu define the speed that the robot must have
+        t1 = 2 # (adjustable lower limt) time in sec before collision
+        t2 = 6  # (adjustable upper limit) time in sec before collision
 
+        m = (absolutMaxSpeed-absolutMinSpeed)/(t2-t2) # calculate slope
+        n = absolutMinSpeed-(m*t2) # calculate intercept
+
+        if tc < t1:
+            v = 0 # since the robot has a limit of 0.1 when v = 0 we should pause the robot -> robot.robot_api.pause(robot_ip)
+
+        elif t1 <= tc <= t2: #if t_c is more than min and less than max, then set speed accoording to a function of t_c
+            v = m*tc+(n)  
+
+        else:
+            v = absolutMaxSpeed
+        
 class human:
     def __init__ (self, tagID): # tagID -> tag_id_from_json
         self.tagID = tagID
