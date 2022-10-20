@@ -10,7 +10,9 @@ class robot: # finalXY -> self.move_x_entry.get()
         self.yPredictions = []
         self.xPredictions = []
         self.xPath = []
+        self.xPathTemp = []
         self.yPath = []
+        self.yPathTemp = []
         self.speedReference : float
         self.currentX : float
         self.currentY : float
