@@ -1,8 +1,10 @@
 # robotHumanClass.robot.xPath[]
 # robotHumanClass.robot.yPath[]
 
-robot = prediction.robotHumanClass(100, 1.1, 0.1) # It is assumed that an instance of the robot class has already been called, named robot
+import robotHumanClass
 
-robot.robot.xPath('Hello World!')
+robot1 = robotHumanClass.robot(100, 1.1, 0.1) # It is assumed that an instance of the robot class has already been called, named robot
 
-print(robot.robot.xPath[0])
+robot1.xPath[1] = ('Hello World!')
+
+print(robot1.xPath[1])
