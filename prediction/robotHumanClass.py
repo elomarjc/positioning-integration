@@ -57,8 +57,8 @@ def fillAndUpdatePositionList (newX, newY): #input the readings of position. Upd
 
 def calculateCurrentSpeed (Xpositionlist = [], Ypositionlist=[], *args):
 
-    total_Xdistance_in_1_sec= Xpositionlist[-1]-Xpositionlist[-4] # Only a subtraction among the two points is done assuming linearity.
-    total_Ydistance_in_1_sec= Ypositionlist[-1]-Ypositionlist[-4] # Since its 1 second it should not be a problem.
+    total_Xdistance_in_1_sec= abs(Xpositionlist[-1]-Xpositionlist[-4]) # Only a subtraction among the two points is done assuming linearity.
+    total_Ydistance_in_1_sec= abs(Ypositionlist[-1]-Ypositionlist[-4]) # Since its 1 second it should not be a problem.
 
     current_Xspeed = total_Xdistance_in_1_sec  # V=distance/time [m/s]; time is 1s 
     current_Yspeed = total_Ydistance_in_1_sec
@@ -143,7 +143,7 @@ def takeCrossingIntoAccount (interception, xRobot, yRobot, xPerson, yPerson):
         return True 
     
 def areCollisionTimesClose (robotTimeToCollide, personTimeToCollide, delta):
-    if (((robotTimeToCollide+delta) >= personTimeToCollide) and ((robotTimeToCollide-delta) <= personTimeToCollide)):
+    if (((robotTimeToCollide+delta) >= personTimeToCollide) or ((robotTimeToCollide-delta) <= personTimeToCollide)):
         return True
     else:
         return False
