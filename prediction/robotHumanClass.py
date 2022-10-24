@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model
 from sklearn.preprocessing import PolynomialFeatures
 import warnings
+import time
+from threading import Thread
 
 warnings.filterwarnings("error")
 
@@ -52,8 +54,30 @@ class human:
         self.currentY: float
         self.collisionTime: float
 
-def fillAndUpdatePositionList (newX, newY): #input the readings of position. Update rate 1s, get 4 points per second -> Add a chunck of 4 points every sencond deleting the oldest 4. Get data of last 3-4 seconds
-    pass
+#code purely for running the test case
+# robot1 = robot(100, 1.1, 0.1)
+
+def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList, yList, robot_ip):
+    while True:
+        robot_status = robot.robot.api.robot_status_direct(robot_ip)
+        # Saves the newest position in a list. This list is limited to n elements
+        xList.append(robot_status['position'][0]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
+        yList.append(robot_status['position'][1]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
+        if len(xList) != len(yList): # Handles the case where xPath and yPath have a different number of elements, though I don't see how that could happen
+            print("ERROR in positional tracking. Resetting position list") # This message should maybe be sent somewhere other than the terminal, if it is needed at all
+            xList.clear()
+            yList.clear()
+        elif len(xList) > positions_saved:
+            del xList[0]
+            del yList[0]
+        if (len(xList)%positions_per_second == 0 and len(xList) != 0):
+            print("Call the next function") # CALL FOR LINEAR REGRESSION
+        time.sleep(1/positions_per_second)
+
+
+### TRY THIS ON MONDAY ###
+# print(json_object_from_mqtt[0]["data"]["coordinates"])
+
 
 def calculateCurrentSpeed (Xpositionlist = [], Ypositionlist=[], *args):
 
