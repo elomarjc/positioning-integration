@@ -33,10 +33,15 @@ class robot: # finalXY -> self.move_x_entry.get()
         self.xPredictions = []
         self.xPath = []
         self.yPath = []
+        self.coefficients = []
+        self.intercept : float
         self.speedReference : float
         self.currentX : float
         self.currentY : float
         self.collisionTime: float
+        self.collisionDistance: float
+        self.actualSpeed: float
+
 
         self.SpeedSlope = (absolutMaxSpeed-absolutMinSpeed)/(upperTimeThreshold-lowerTimeThreshold)
         self.SpeedIntercept = absolutMinSpeed-self.SpeedSlope*lowerTimeThreshold
@@ -58,10 +63,13 @@ class human:
         self.yPath = []
         self.yPredictions = []
         self.xPredictions = []
-        self.speed : float
+        self.coefficients = []
+        self.intercept : float
+        self.actualSpeed : float
         self.currentX : float
         self.currentY: float
         self.collisionTime: float
+        self.collisionDistance: float
 
 #code purely for running the test case
 
