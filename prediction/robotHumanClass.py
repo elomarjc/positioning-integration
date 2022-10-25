@@ -6,6 +6,15 @@ from sklearn.preprocessing import PolynomialFeatures
 import warnings
 import time
 from threading import Thread
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1])
+                )  # can import files based on the parents path
+
+from robot import robot_api
+from tools import map
+
 
 warnings.filterwarnings("error")
 
@@ -55,28 +64,38 @@ class human:
         self.collisionTime: float
 
 #code purely for running the test case
-# robot1 = robot(100, 1.1, 0.1)
 
 def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList, yList, robot_ip):
+    counter = 0
     while True:
-        robot_status = robot.robot.api.robot_status_direct(robot_ip)
-        # Saves the newest position in a list. This list is limited to n elements
-        xList.append(robot_status['position'][0]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
-        yList.append(robot_status['position'][1]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
-        if len(xList) != len(yList): # Handles the case where xPath and yPath have a different number of elements, though I don't see how that could happen
-            print("ERROR in positional tracking. Resetting position list") # This message should maybe be sent somewhere other than the terminal, if it is needed at all
-            xList.clear()
-            yList.clear()
-        elif len(xList) > positions_saved:
-            del xList[0]
-            del yList[0]
-        if (len(xList)%positions_per_second == 0 and len(xList) != 0):
-            print("Call the next function") # CALL FOR LINEAR REGRESSION
-        time.sleep(1/positions_per_second)
+        
+        try:
+            robot_status = robot_api.robot_status_direct(robot_ip)
+            # Saves the newest position in a list. This list is limited to n elements
+            xyValues = (map.convert_robot_position_for_unification(robot_status['position']['x'], robot_status['position']['y']))
+            xList.append(xyValues[0]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
+            yList.append(xyValues[1]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
+
+            counter = counter+1
+
+            if len(xList) != len(yList): # Handles the case where xPath and yPath have a different number of elements, though I don't see how that could happen
+                print("ERROR in positional tracking. Resetting position list") # This message should maybe be sent somewhere other than the terminal, if it is needed at all
+                xList.clear()
+                yList.clear()
+            elif len(xList) > positions_saved:
+                del xList[0]
+                del yList[0]
+            if (counter%positions_per_second == 0 and counter != 0):
+                print("Call the next function") # CALL FOR LINEAR REGRESSION
+
+                counter = 0
+            
+            time.sleep(1/positions_per_second)
+        except Exception as e:
+        
+            print(e)
 
 
-### TRY THIS ON MONDAY ###
-# print(json_object_from_mqtt[0]["data"]["coordinates"])
 
 
 def calculateCurrentSpeed (Xpositionlist = [], Ypositionlist=[], *args):
