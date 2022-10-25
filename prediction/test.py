@@ -1,6 +1,5 @@
 from concurrent.futures import thread
 import robotHumanClass
-
 import sys
 from pathlib import Path
 from threading import Thread
