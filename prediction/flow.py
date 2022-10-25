@@ -23,7 +23,7 @@ robot1 = robotHumanClass.robot(robot_ip, 1.1, 0.1, 2, 1)
 human1 = robotHumanClass.human(tag_id)
 
 while True:
-    if:
+    if(10>1):
         robot1.coefficients, robot1.intercept = robotHumanClass.predictPaths(robot1.xPath, robot1.yPath)
         human1.coefficients, human1.intercept = robotHumanClass.predictPaths(human1.xPath, human1.yPath)
         try:
