@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from threading import Thread
 from datetime import datetime
+import robotHumanClass
 
 sys.path.append(str(Path(__file__).resolve().parents[1])
                 )  # can import files based on the parents path
@@ -23,7 +24,7 @@ robot1 = robotHumanClass.robot(robot_ip, 1.1, 0.1, 2, 1)
 human1 = robotHumanClass.human(tag_id)
 
 while True:
-    if(10>1):
+    if(robotHumanClass.fourNewMeasurements):
         robot1.coefficients, robot1.intercept = robotHumanClass.predictPaths(robot1.xPath, robot1.yPath)
         human1.coefficients, human1.intercept = robotHumanClass.predictPaths(human1.xPath, human1.yPath)
         try:
@@ -47,9 +48,9 @@ while True:
 
                 robot1.collisionTime = robotHumanClass.calculateTimeToCollision(robot1.collisionDistance, robot1.actualSpeed)
                 human1.collisionTime = robotHumanClass.calculateTimeToCollision(human1.collisionDistance, human1.actualSpeed)
-                if( robotHumanClass.areCollisionTimesClose(robot1.collisionTime, human1.collisionTime, delta)):#IF GEIXAU NOIZ AKTUALIZAU IKUSTEKO
-                    print()
+                if((robotHumanClass.areCollisionTimesClose(robot1.collisionTime, human1.collisionTime, delta)) and ((((datetime.now()-setSpeedTime).seconds) > robot1.prevCollisionTime) or (robot1.collisionTime < robot1.prevCollisionTime)) ):
                     robot1.speedReference= robot1.neededSpeedReference()
+                    robot1.prevCollisionTime = robot1.collisionTime
                     #PONER EN EL API LA VELOCIDAD
                     setSpeedTime= datetime.now()
                 else:
