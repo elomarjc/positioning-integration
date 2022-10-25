@@ -39,6 +39,7 @@ class robot: # finalXY -> self.move_x_entry.get()
         self.currentX : float
         self.currentY : float
         self.collisionTime: float
+        self.prevCollisionTime: float
         self.collisionDistance: float
         self.actualSpeed: float
 
@@ -75,6 +76,8 @@ class human:
 
 def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList, yList, robot_ip):
     counter = 0
+    global fourNewMeasurements
+
     while True:
         
         try:
@@ -84,6 +87,7 @@ def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList,
             xList.append(xyValues[0]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
             yList.append(xyValues[1]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
 
+            fourNewMeasurements = False
             counter = counter+1
 
             if len(xList) != len(yList): # Handles the case where xPath and yPath have a different number of elements, though I don't see how that could happen
@@ -94,7 +98,8 @@ def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList,
                 del xList[0]
                 del yList[0]
             if (counter%positions_per_second == 0 and counter != 0):
-                print("Call the next function") # CALL FOR LINEAR REGRESSION
+
+                fourNewMeasurements = True
 
                 counter = 0
             
