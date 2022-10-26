@@ -6,7 +6,9 @@ import sys
 from pathlib import Path
 from threading import Thread
 from datetime import datetime
+from robot import robot_api
 import robotHumanClass
+
 
 sys.path.append(str(Path(__file__).resolve().parents[1])
                 )  # can import files based on the parents path
@@ -42,15 +44,18 @@ while True:
                 #xapth[-1] denbora guztian aktualizatzen doia
                 robot1.collisionDistance = robotHumanClass.calculateDistanceToCollision(robot1.coefficients, robot1.intercept, robot1.xPath[-1],robot1.yPath[-1],intercept[0],intercept[1])
                 human1.collisionDistance = robotHumanClass.calculateDistanceToCollision(human1.coefficients, human1.intercept, human1.xPath[-1],human1.yPath[-1],intercept[0],intercept[1])
-
-                robot1.actualSpeed = robotHumanClass.calculateCurrentSpeed(robot1.xPath,robot1.yPath)#read from API
+                robot_status = robot_api.robot_status_direct(robot1.robotIP)
+                robot1.actualSpeed = robot_status['velocity']['linear']
+                #robot1.actualSpeed = robotHumanClass.calculateCurrentSpeed(robot1.xPath,robot1.yPath)#read from API
                 human1.actualSpeed = robotHumanClass.calculateCurrentSpeed(human1.xPath,human1.yPath)
 
                 robot1.collisionTime = robotHumanClass.calculateTimeToCollision(robot1.collisionDistance, robot1.actualSpeed)
                 human1.collisionTime = robotHumanClass.calculateTimeToCollision(human1.collisionDistance, human1.actualSpeed)
                 if((robotHumanClass.areCollisionTimesClose(robot1.collisionTime, human1.collisionTime, delta)) and ((((datetime.now()-setSpeedTime).seconds) > robot1.prevCollisionTime) or (robot1.collisionTime < robot1.prevCollisionTime)) ):
+                    print()
                     robot1.speedReference= robot1.neededSpeedReference()
                     robot1.prevCollisionTime = robot1.collisionTime
+
                     #PONER EN EL API LA VELOCIDAD
                     setSpeedTime= datetime.now()
                 else:

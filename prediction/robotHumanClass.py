@@ -203,3 +203,4 @@ def areCollisionTimesClose (robotTimeToCollide, personTimeToCollide, delta):
         return True
     else:
         return False
+
