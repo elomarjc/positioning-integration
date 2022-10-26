@@ -78,6 +78,8 @@ def on_message_tags(client, userdata, msg):  # defining the functions
             data1.valueCounter = 0
         else:
             data1.valueCounter = data1.valueCounter+1
+    time.sleep(1/4)
+
         #createList(data1.xPosition, data1.yPosition, influxdb_x, influxdb_y)
         #print(str(data1.xPosition))
 
