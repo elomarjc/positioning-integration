@@ -9,6 +9,8 @@ from threading import Thread
 import sys
 from pathlib import Path
 
+from traitlets import Bool
+
 sys.path.append(str(Path(__file__).resolve().parents[1])
                 )  # can import files based on the parents path
 
@@ -42,6 +44,7 @@ class robot: # finalXY -> self.move_x_entry.get()
         self.prevCollisionTime: float
         self.collisionDistance: float
         self.actualSpeed: float
+        self.readingCounter: int
 
 
         self.SpeedSlope = (absolutMaxSpeed-absolutMinSpeed)/(upperTimeThreshold-lowerTimeThreshold)
@@ -71,6 +74,8 @@ class human:
         self.currentY: float
         self.collisionTime: float
         self.collisionDistance: float
+        self.readingCounter: int
+        self.readyforPrediction: bool
 
 #code purely for running the test case
 
