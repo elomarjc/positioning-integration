@@ -101,7 +101,7 @@ limit_influxdb = tools.tools.last_influxDB_records()
 limit_influxdb_lock = Lock()
 # max data writing rates, unit: Hz
 max_cv_rate = 25
-max_uwb_rate = 20
+max_uwb_rate = 20 
 max_robot_rate = 10
 # min data writing intervals, unit: millisecond
 min_cv_interval = 1 / (float(max_cv_rate)) * 1000
