@@ -8,14 +8,26 @@ import multiprocessing as mp
 import paho.mqtt.client as mqtt
 import json
 import time
+from datetime import datetime
+import warnings
+sys.path.append(str(Path(__file__).resolve().parents[1])
+                )  # can import files based on the parents path
+
+from robot import robot_api
 from simple_examples import uwb_example
 import tools.map
 import matplotlib.pyplot as plt
+warnings.filterwarnings("error")
 
+robot_ip="192.168.100.2"
 human1=robotHumanClass.human("5329")
+robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 4.5,2.5)
 host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
 topic = "tags"  # Defining a Topic on server
+lower_range=0
+upper_range=0
+delta=5
 def fillAndUpdatePositionListHuman(positions_per_second, positions_saved, xList, yList):
     while True:
         
@@ -54,9 +66,10 @@ def on_message_tags(client, userdata, msg):  # defining the functions
     if (str(tag_id_from_json) == "5329"):
         human1.xPath.append(influxdb_x)
         human1.yPath.append(influxdb_y)
+        print("reading")
 
-        if (human1.readingCounter == 4):
-            human1.readingCounter = 0
+        if (human1.readingCounter == 3):
+            #human1.readingCounter = 0
             human1.readyforPrediction = True
         else:
             human1.readingCounter = human1.readingCounter+1
@@ -83,21 +96,64 @@ def run_tag():
     client.disconnect()
     client.loop_stop()
     print("disconnected")
+
 def main_functions():
-    counter = 0
     while True:
-        if (human1.readyforPrediction):
-            counter = counter+1
+        if (human1.readyforPrediction):# or robot1.readyforPrediction):
             human1.readyforPrediction = False
+            robot1.readyforPrediction = False
+            human1.readingCounter = 0
+
+
             human1.coefficients, human1.intercept = robotHumanClass.predictPaths(human1.xPath, human1.yPath)
-            print("X path")
-            print(human1.xPath)
-            print("Y path")
-            print(human1.yPath)
-            print("Coefficients")
-            print(human1.coefficients)
-            print("Intercep")
-            print(human1.intercept)
+            robot1.coefficients, robot1.intercept = robotHumanClass.predictPaths(robot1.xPath, robot1.yPath)
+            #print(robot1.coefficients)
+           # print(robot1.intercept)
+            print("while")
+            
+            try:
+                intercept = robotHumanClass.findIntercept(lower_range, upper_range, robot1.coefficients, robot1.intercept, human1.coefficients, human1.intercept)
+            except RuntimeWarning:
+                intercept = -1
+
+                if (type(intercept)== int):
+                    print("No collision danger, there is no intercept")
+
+                else:
+                    if(not robotHumanClass.takeCrossingIntoAccount(intercept, robot1.xPath, robot1.yPath, human1.xPath, human1.yPath)):
+                        print("No collision danger, the moving objects are moving away from intercept")
+                    else:
+                        print("COLLISION DANGER")
+                        #xapth[-1] denbora guztian aktualizatzen doia
+                        robot1.collisionDistance = robotHumanClass.calculateDistanceToCollision(robot1.coefficients, robot1.intercept, robot1.xPath[-1],robot1.yPath[-1],intercept[0],intercept[1])
+                        human1.collisionDistance = robotHumanClass.calculateDistanceToCollision(human1.coefficients, human1.intercept, human1.xPath[-1],human1.yPath[-1],intercept[0],intercept[1])
+                        robot_status = robot_api.robot_status_direct(robot1.robotIP)
+                        robot1.actualSpeed = robot_status['velocity']['linear']
+                        print(robot1.actualSpeed)
+                        #robot1.actualSpeed = robotHumanClass.calculateCurrentSpeed(robot1.xPath,robot1.yPath)#read from API
+                        human1.actualSpeed = robotHumanClass.calculateCurrentSpeed(human1.xPath,human1.yPath)
+
+                        robot1.collisionTime = robotHumanClass.calculateTimeToCollision(robot1.collisionDistance, robot1.actualSpeed)
+                        human1.collisionTime = robotHumanClass.calculateTimeToCollision(human1.collisionDistance, human1.actualSpeed)
+                        if((robotHumanClass.areCollisionTimesClose(robot1.collisionTime, human1.collisionTime, delta)) and ((((datetime.now()-setSpeedTime).seconds) > robot1.prevCollisionTime) or (robot1.collisionTime < robot1.prevCollisionTime)) ):
+                            print("aaaaaa")
+                            robot1.speedReference= robot1.neededSpeedReference()
+                            robot1.prevCollisionTime = robot1.collisionTime
+
+                            robot_api.set_max_speed(robot_ip, robot1.speedReference )
+                            setSpeedTime= datetime.now()
+                        elif (((datetime.now()-setSpeedTime).seconds) > robot1.prevCollisionTime):
+                            robot_api.set_max_speed(robot_ip, "1.1")
+                            print("max_speed")
+                        else:
+                            pass
+                            
+        else:
+            pass
+            
+
+
+
 
 
         
@@ -113,7 +169,8 @@ t_tag.start()
 #thread measurements
 t_prediction = Thread(target=fillAndUpdatePositionListHuman, args=(4, 12, human1.xPath, human1.yPath))
 t_prediction.start()
-
+t_prediction_robot = Thread(target=robotHumanClass.fillAndUpdatePositionListRobot, args=(4, 12, robot1.xPath, robot1.yPath, robot1))
+t_prediction_robot.start()
 
 
 

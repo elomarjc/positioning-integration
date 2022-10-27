@@ -44,7 +44,8 @@ class robot: # finalXY -> self.move_x_entry.get()
         self.prevCollisionTime: float
         self.collisionDistance: float
         self.actualSpeed: float
-        self.readingCounter: int
+        self.readingCounter = 0
+        self.readyforPrediction = False
 
 
         self.SpeedSlope = (absolutMaxSpeed-absolutMinSpeed)/(upperTimeThreshold-lowerTimeThreshold)
@@ -74,26 +75,23 @@ class human:
         self.currentY: float
         self.collisionTime: float
         self.collisionDistance: float
-        self.readingCounter: int
-        self.readyforPrediction: bool
+        self.readingCounter = 0
+        self.readyforPrediction = False
 
 #code purely for running the test case
 
-def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList, yList, robot_ip):
+def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList, yList, robot):
     counter = 0
-    global fourNewMeasurements
+    
 
     while True:
         
         try:
-            robot_status = robot_api.robot_status_direct(robot_ip)
+            robot_status = robot_api.robot_status_direct(robot.robotIP)
             # Saves the newest position in a list. This list is limited to n elements
             xyValues = (map.convert_robot_position_for_unification(robot_status['position']['x'], robot_status['position']['y']))
             xList.append(xyValues[0]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
             yList.append(xyValues[1]) # CHANGE THIS TO CALL THE API FOR POSITIONAL INFORMATION
-
-            fourNewMeasurements = False
-            counter = counter+1
 
             if len(xList) != len(yList): # Handles the case where xPath and yPath have a different number of elements, though I don't see how that could happen
                 print("ERROR in positional tracking. Resetting position list") # This message should maybe be sent somewhere other than the terminal, if it is needed at all
@@ -104,11 +102,14 @@ def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList,
                 del yList[0]
             if (counter%positions_per_second == 0 and counter != 0):
 
-                fourNewMeasurements = True
+                robot.readyforPrediction = True
 
                 counter = 0
+            else:
+                counter = counter+1
             
             time.sleep(1/positions_per_second)
+            
         except Exception as e:
         
             print(e)
