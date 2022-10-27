@@ -52,13 +52,13 @@ class robot: # finalXY -> self.move_x_entry.get()
         self.SpeedIntercept = absolutMinSpeed-self.SpeedSlope*lowerTimeThreshold
 
     def neededSpeedReference (self):  #input the time to collide or distance to collide and outpu define the speed that the robot must have
-         if (self.collisionTime >= self.upperTimeThreshold):
-            self.neededSpeed = self.absolutMaxSpeed
+        if (self.collisionTime >= self.upperTimeThreshold):
+            self.neededSpeed = 0.8#self.absolutMaxSpeed
 
-         elif (self.collisionTime < self.lowerTimeThreshold):
+        elif (self.collisionTime < self.lowerTimeThreshold):
             self.speedReference = 0
 
-         else:
+        else:
             self.speedReference = self.SpeedSlope*self.collisionTime+self.SpeedIntercept
 
 class human:
@@ -160,7 +160,10 @@ def calculateDistanceToCollision(coef_array, intercept, origin_point_x,origin_po
     return total_distance
 
 def calculateTimeToCollision(distanceToCollision, speed): #input current positions and predictions, output time and or distance until collision
-    time_to_collision=distanceToCollision/speed
+    if speed==0:
+        time_to_collision=1000
+    else:
+        time_to_collision=distanceToCollision/speed
     return time_to_collision
 
 def predictPaths(listOfX, listOfY): #output predictedYcoord and predictedXcoord
