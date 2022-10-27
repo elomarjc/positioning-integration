@@ -21,7 +21,7 @@ warnings.filterwarnings("error")
 
 robot_ip="192.168.100.2"
 human1=robotHumanClass.human("5329")
-robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 4.5,2.5)
+robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 7, 2)
 host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
 topic = "tags"  # Defining a Topic on server
@@ -146,16 +146,23 @@ def main_functions():
                     
                     robot1.collisionTime = robotHumanClass.calculateTimeToCollision(robot1.collisionDistance, robot1.actualSpeed)
                     human1.collisionTime = robotHumanClass.calculateTimeToCollision(human1.collisionDistance, human1.actualSpeed)
-                    if((robotHumanClass.areCollisionTimesClose(robot1.collisionTime, human1.collisionTime, delta)) and ((((datetime.now()-setSpeedTime).second) > robot1.prevCollisionTime) or (robot1.collisionTime < robot1.prevCollisionTime))) :
+                    print(robot1.collisionTime)
+                    print(human1.collisionTime)
+
+                    if((robotHumanClass.areCollisionTimesClose(robot1.collisionTime, human1.collisionTime, delta)) and (robot1.collisionTime < robot1.prevCollisionTime)):#((((datetime.now()-setSpeedTime).second) > robot1.prevCollisionTime) or (robot1.collisionTime < robot1.prevCollisionTime))) :
                         print("aaaaaa")
-                        robot1.speedReference = robot1.neededSpeedReference()
+                        robot1.speedReference = robotHumanClass.neededSpeedReference(robot1)
                         print(robot1.speedReference)
                         robot1.prevCollisionTime = robot1.collisionTime
-                        #if needed velocity is 0 send pause 
-                        #robot_api.set_desired_speed(robot_ip, str(robot1.speedReference) )
-                        robot_api.set_desired_speed(robot_ip, str(1.1) )
                         setSpeedTime= datetime.now()
-                    elif (((datetime.now()-setSpeedTime).second) > robot1.prevCollisionTime):
+                        if (robot1.speedReference == 0):
+                            robot_api.pause(robot1.robotIP)
+                        else:
+                            robot_api.un_pause(robot1.robotIP)
+                            robot_api.set_desired_speed(robot_ip, str(robot1.speedReference) )
+
+                        
+                    elif ((datetime.now()-setSpeedTime).second):#.second(S) ) > robot1.prevCollisionTime):
                         robot_api.set_max_speed(robot_ip, "1.1")
                         print("max_speed")
                     else:

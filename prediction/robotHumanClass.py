@@ -50,7 +50,7 @@ class robot: # finalXY -> self.move_x_entry.get()
 
         self.SpeedSlope = (absolutMaxSpeed-absolutMinSpeed)/(upperTimeThreshold-lowerTimeThreshold)
         self.SpeedIntercept = absolutMinSpeed-self.SpeedSlope*lowerTimeThreshold
-
+'''
     def neededSpeedReference (self):  #input the time to collide or distance to collide and outpu define the speed that the robot must have
         if (self.collisionTime >= self.upperTimeThreshold):
             self.neededSpeed = 0.8#self.absolutMaxSpeed
@@ -60,7 +60,7 @@ class robot: # finalXY -> self.move_x_entry.get()
 
         else:
             self.speedReference = self.SpeedSlope*self.collisionTime+self.SpeedIntercept
-
+'''
 class human:
     def __init__ (self, tagID): # tagID -> tag_id_from_json
         self.tagID = tagID
@@ -80,10 +80,19 @@ class human:
 
 #code purely for running the test case
 
+def neededSpeedReference (robot):  #input the time to collide or distance to collide and outpu define the speed that the robot must have
+    if (robot.collisionTime >= robot.upperTimeThreshold):
+        return (robot.absolutMaxSpeed)#self.absolutMaxSpeed
+
+    elif (robot.collisionTime < robot.lowerTimeThreshold):
+        return 0
+
+    else:
+        return (robot.SpeedSlope*robot.collisionTime+robot.SpeedIntercept)
+
 def fillAndUpdatePositionListRobot(positions_per_second, positions_saved, xList, yList, robot):
     counter = 0
     
-
     while True:
         
         try:
@@ -163,7 +172,7 @@ def calculateTimeToCollision(distanceToCollision, speed): #input current positio
     if speed==0:
         time_to_collision=1000
     else:
-        time_to_collision=distanceToCollision/speed
+        time_to_collision=abs(distanceToCollision)/abs(speed)
     return time_to_collision
 
 def predictPaths(listOfX, listOfY): #output predictedYcoord and predictedXcoord
@@ -171,14 +180,18 @@ def predictPaths(listOfX, listOfY): #output predictedYcoord and predictedXcoord
 
     for x in listOfX:
         xArray = np.append(xArray, x)
+    try:
+        polynomial = PolynomialFeatures(degree=3, include_bias=False)
+        polynomial_features = polynomial.fit_transform(xArray.reshape(-1, 1))
+        polynomial_regression_model = linear_model.LinearRegression()
 
-    polynomial = PolynomialFeatures(degree=3, include_bias=False)
-    polynomial_features = polynomial.fit_transform(xArray.reshape(-1, 1))
-    polynomial_regression_model = linear_model.LinearRegression()
+        model = polynomial_regression_model.fit(polynomial_features, listOfY)
 
-    model = polynomial_regression_model.fit(polynomial_features, listOfY)
+        return model.coef_, model.intercept_
+    except ValueError:
+        pass
 
-    return model.coef_, model.intercept_
+    
 
 def findIntercept (lowerRange, upperRange, coeffRobot, interRobot, coeffPerson, interPerson): #f,
     def f(xy):
