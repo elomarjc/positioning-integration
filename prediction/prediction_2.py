@@ -8,7 +8,7 @@ import multiprocessing as mp
 import paho.mqtt.client as mqtt
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import warnings
 sys.path.append(str(Path(__file__).resolve().parents[1])
                 )  # can import files based on the parents path
@@ -160,7 +160,6 @@ def main_functions():
                         else:
                             robot_api.un_pause(robot1.robotIP)
                             robot_api.set_desired_speed(robot_ip, str(robot1.speedReference) )
-
                         
                     elif ((datetime.now()-setSpeedTime).second):#.second(S) ) > robot1.prevCollisionTime):
                         robot_api.set_max_speed(robot_ip, "1.1")
