@@ -155,6 +155,7 @@ def calculateDistanceToCollision(coef_array, intercept, origin_point_x,origin_po
     distance_y=0
     distance_x=0
     total_distance=0
+
     while((smaller+x*step)<=larger):
         y_coordinate=coef_array[2]*(smaller+x*step)**3+coef_array[1]*(smaller+x*step)**2+coef_array[0]*(smaller+x*step)+intercept
         distance_y=y_coordinate-y_coordinate_previous 
@@ -172,9 +173,7 @@ def calculateTimeToCollision(distanceToCollision, speed): #input current positio
     else:
         time_to_collision=abs(distanceToCollision)/abs(speed)
     return time_to_collision
-
-
-    
+  
 
 def findIntercept (lowerRange, upperRange, coeffRobot, interRobot, coeffPerson, interPerson): #f,
     def f(xy):
@@ -209,10 +208,6 @@ def areCollisionTimesClose (robotTimeToCollide, personTimeToCollide, delta):
     else:
         return False
 
-
-
-
-
 def euclideanDistance (x1, y1, x2, y2):
     return math.sqrt((x1-x2)**2+(y1-y2)**2)
 
@@ -227,7 +222,7 @@ def timeToCollision (predictedX1, predictedY1, predictedX2, predictedY2, timeMar
         while addition <= maxAddition:
             if index + addition >= 0 and index + addition < len(predictedX1): # negative indexes do not exist and the length can't be exceded
                 distanceAmongPoints = euclideanDistance(predictedX1[index], predictedY1[index], predictedX2[index+addition], predictedY2[index+addition])
-                print(distanceAmongPoints)
+                #print(distanceAmongPoints)
                 if distanceAmongPoints <= minimumEuclideanDistance:
                     if addition+index <= index: # we will always return the most critical time to collision
                         return (addition+index+1)*timeDelta #1 is added because collision in index = 0 means collision in t = timeDelta

@@ -23,12 +23,12 @@ robot_ip="192.168.100.2"
 human1=robotHumanClass.human("5329")
 #robot1=robotHumanClass.human("5328")
 
-robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 4.5, 1)
+robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 7.5, 1.5)
 
 timeBetweenSamples = 0.25
 timetopredict = 10
 timeMargin = 1
-minimumEuclideanDistance = 1
+minimumEuclideanDistance = 2
 host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
 topic = "tags"  # Defining a Topic on server
@@ -103,12 +103,14 @@ def fillAndUpdatePositionListHuman(positions_per_second, positions_saved, xList,
         
             print(e)
 
-
-
 def main_functions():
+    robot1.prevCollisionTime = 1000
+    timeWhenSpeedWasDefined = 0
+    deltaForMaxSpeed = 2
     while True:  
 
         if human1.readyforPrediction:
+            print(time.time())
             human1.readyforPrediction = False
             robotXCoef, robotXinter = robotHumanClass.calculatePath (robot1.xPath, timeBetweenSamples)
             robotYCoef, robotYinter = robotHumanClass.calculatePath (robot1.yPath, timeBetweenSamples)
@@ -118,17 +120,16 @@ def main_functions():
 
             predictedRobotX = robotHumanClass.predictNextPositions (robot1.xPath, robotXCoef, robotXinter, timeBetweenSamples, timetopredict)
             predictedRobotY = robotHumanClass.predictNextPositions (robot1.yPath, robotYCoef, robotYinter, timeBetweenSamples, timetopredict)
-            print("x")
-            print(predictedRobotX)
-            print("y")
-            print(predictedRobotY)
+            
             predictedPersonX = robotHumanClass.predictNextPositions (human1.xPath, personXCoef, personXinter, timeBetweenSamples, timetopredict)
-            predictedPersonY = robotHumanClass.predictNextPositions (human1.yPath, personYCoef, personYinter, timeBetweenSamples, timetopredict)
+            predictedPersonY = robotHumanClass.predictNextPositions (human1.yPath, personYCoef, personYinter, timeBetweenSamples, timetopredict)       
             robot1.collisionTime = robotHumanClass.timeToCollision(predictedRobotX, predictedRobotY, predictedPersonX, predictedPersonY, timeMargin, timeBetweenSamples, minimumEuclideanDistance)
             print(robot1.collisionTime)
-            if robot1.collisionTime != -1 and robot1.collisionTime <  robot1.prevCollisionTime: #add time condition to be able to increase the speed to a non maximum value
+            if ((robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime)): #add time condition to be able to increase the speed to a non maximum value
                 robot1.prevCollisionTime = robot1.collisionTime
                 robot1.speedReference = robotHumanClass.neededSpeedReference(robot1)
+
+                timeWhenSpeedWasDefined = time.time()
                 if robot1.speedReference == 0:
                     robot_api.pause(robot1.robotIP)
                     print("STOOOOOPPPPPPPPPPP")
@@ -136,12 +137,12 @@ def main_functions():
                     robot_api.un_pause(robot1.robotIP)
                     print(robot1.speedReference)
                     robot_api.set_max_speed(robot_ip, str(robot1.speedReference))
-            #elif : #on the elif statement we should make the robot go in maximum speed when the time since the robot's speed was set in a non maximum value is greater than the time of the collision that made the speed change
-             #   pass
-            else: #it should only have pass
-                time.sleep(2)
-                robot_api.un_pause(robot1.robotIP)
+            elif ((time.time()>timeWhenSpeedWasDefined+deltaForMaxSpeed)): #on the elif statement we should make the robot go in maximum speed when the time since the robot's speed was set in a non maximum value is greater than the time of the collision that made the speed change
+
+                robot_api.un_pause(robot1.robotIP)  
                 robot_api.set_max_speed(robot_ip, str(robot1.absolutMaxSpeed))
+
+            else:
                 robot1.prevCollisionTime = 10000
         else:
             pass
