@@ -66,8 +66,10 @@ class human:
         self.yPath = []
         self.yPredictions = []
         self.xPredictions = []
-        self.coefficients = []
-        self.intercept : float
+        self.xCoefficients = []
+        self.yCoefficients = []
+        self.xIntercept : float
+        self.yIntercept : float
         self.actualSpeed : float
         self.currentX : float
         self.currentY: float
@@ -238,6 +240,7 @@ def timeToCollision (predictedX1, predictedY1, predictedX2, predictedY2, timeMar
     return -1 #-1 means no collision danger
 
 def calculatePath (points, timeDelta):
+
     pointArray = np.array([])
 
     for point in points:

@@ -10,6 +10,7 @@ import paho.mqtt.client as mqtt
 import json
 import time
 from datetime import datetime, timedelta
+from all_class_instances import getAllInstances
 import warnings
 sys.path.append(str(Path(__file__).resolve().parents[1])
                 )  # can import files based on the parents path
@@ -19,19 +20,7 @@ import tools.map
 import matplotlib.pyplot as plt
 warnings.filterwarnings("error")
 
-robot_ip="192.168.100.2"
-human1=robotHumanClass.human("5329")
-#robot1=robotHumanClass.human("5328")
 
-robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 7.5, 1.5)
-
-timeBetweenSamples = 0.25
-timetopredict = 10
-timeMargin = 1
-minimumEuclideanDistance = 2
-host = "192.168.100.153"  # Broker (Server) IP Address
-port = 1883
-topic = "tags"  # Defining a Topic on server
 def on_message_tags(client, userdata, msg):  # defining the functions
 
     string_from_mqtt_stream = msg.payload.decode()
@@ -49,16 +38,16 @@ def on_message_tags(client, userdata, msg):  # defining the functions
             float(coordinates_from_json["x"]),
             float(coordinates_from_json["y"]))
        # print(str(influxdb_x), str(influxdb_y),str(tag_id_from_json))
+        for human in humans:
+            if (str(tag_id_from_json) == human.tagID): 
+                human.xPath.append(influxdb_x)
+                human.yPath.append(influxdb_y)
 
-        if (str(tag_id_from_json) == "5329"): 
-            human1.xPath.append(influxdb_x)
-            human1.yPath.append(influxdb_y)
-
-            if (human1.readingCounter == 3):
-                #human1.readingCounter = 0
-                human1.readyforPrediction = True
-            else:
-                human1.readingCounter = human1.readingCounter+1
+                if (human.readingCounter == 3):
+                    #human1.readingCounter = 0
+                    human.readyforPrediction = True
+                else:
+                    human.readingCounter = human.readingCounter+1
     #time.sleep(1/4)
 def on_connect(client, userdata, flags, rc):  # defining the functions
     print(mqtt.connack_string(rc))
@@ -109,43 +98,64 @@ def main_functions():
     deltaForMaxSpeed = 2
     while True:  
 
-        if human1.readyforPrediction:
-            print(time.time())
-            human1.readyforPrediction = False
-            robotXCoef, robotXinter = robotHumanClass.calculatePath (robot1.xPath, timeBetweenSamples)
-            robotYCoef, robotYinter = robotHumanClass.calculatePath (robot1.yPath, timeBetweenSamples)
+        for human in humans:
 
-            personXCoef, personXinter = robotHumanClass.calculatePath (human1.xPath, timeBetweenSamples)
-            personYCoef, personYinter = robotHumanClass.calculatePath (human1.yPath, timeBetweenSamples)
+            if human.readyforPrediction:
+                #print(time.time())
+                human.readyforPrediction = False
+                robotXCoef, robotXinter = robotHumanClass.calculatePath (robot1.xPath, timeBetweenSamples)
+                robotYCoef, robotYinter = robotHumanClass.calculatePath (robot1.yPath, timeBetweenSamples)
 
-            predictedRobotX = robotHumanClass.predictNextPositions (robot1.xPath, robotXCoef, robotXinter, timeBetweenSamples, timetopredict)
-            predictedRobotY = robotHumanClass.predictNextPositions (robot1.yPath, robotYCoef, robotYinter, timeBetweenSamples, timetopredict)
-            
-            predictedPersonX = robotHumanClass.predictNextPositions (human1.xPath, personXCoef, personXinter, timeBetweenSamples, timetopredict)
-            predictedPersonY = robotHumanClass.predictNextPositions (human1.yPath, personYCoef, personYinter, timeBetweenSamples, timetopredict)       
-            robot1.collisionTime = robotHumanClass.timeToCollision(predictedRobotX, predictedRobotY, predictedPersonX, predictedPersonY, timeMargin, timeBetweenSamples, minimumEuclideanDistance)
-            print(robot1.collisionTime)
-            if ((robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime)): #add time condition to be able to increase the speed to a non maximum value
-                robot1.prevCollisionTime = robot1.collisionTime
-                robot1.speedReference = robotHumanClass.neededSpeedReference(robot1)
+                personXCoef, personXinter = robotHumanClass.calculatePath (human.xPath, timeBetweenSamples)
+                personYCoef, personYinter = robotHumanClass.calculatePath (human.yPath, timeBetweenSamples)
 
-                timeWhenSpeedWasDefined = time.time()
-                if robot1.speedReference == 0:
-                    robot_api.pause(robot1.robotIP)
-                    print("STOOOOOPPPPPPPPPPP")
+                predictedRobotX = robotHumanClass.predictNextPositions (robot1.xPath, robotXCoef, robotXinter, timeBetweenSamples, timetopredict)
+                predictedRobotY = robotHumanClass.predictNextPositions (robot1.yPath, robotYCoef, robotYinter, timeBetweenSamples, timetopredict)
+                
+                human.xPredictions = robotHumanClass.predictNextPositions (human.xPath, personXCoef, personXinter, timeBetweenSamples, timetopredict)
+                human.YPredictions = robotHumanClass.predictNextPositions (human.yPath, personYCoef, personYinter, timeBetweenSamples, timetopredict)       
+                robot1.collisionTime = robotHumanClass.timeToCollision(predictedRobotX, predictedRobotY, human.xPredictions, human.YPredictions, timeMargin, timeBetweenSamples, minimumEuclideanDistance)
+                print(human.tagID)
+                print(robot1.collisionTime)
+                print(str(time.time()))
+                if ((robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime)): #add time condition to be able to increase the speed to a non maximum value
+                    robot1.prevCollisionTime = robot1.collisionTime
+                    robot1.speedReference = robotHumanClass.neededSpeedReference(robot1)
+
+                    timeWhenSpeedWasDefined = time.time()
+                    if robot1.speedReference == 0:
+                        robot_api.pause(robot1.robotIP)
+                        print("STOOOOOPPPPPPPPPPP")
+                    else:
+                        robot_api.un_pause(robot1.robotIP)
+                        print(robot1.speedReference)
+                        robot_api.set_max_speed(robot_ip, str(robot1.speedReference))
+                elif ((time.time()>timeWhenSpeedWasDefined+deltaForMaxSpeed)): #on the elif statement we should make the robot go in maximum speed when the time since the robot's speed was set in a non maximum value is greater than the time of the collision that made the speed change
+
+                    robot_api.un_pause(robot1.robotIP)  
+                    robot_api.set_max_speed(robot_ip, str(robot1.absolutMaxSpeed))
+
                 else:
-                    robot_api.un_pause(robot1.robotIP)
-                    print(robot1.speedReference)
-                    robot_api.set_max_speed(robot_ip, str(robot1.speedReference))
-            elif ((time.time()>timeWhenSpeedWasDefined+deltaForMaxSpeed)): #on the elif statement we should make the robot go in maximum speed when the time since the robot's speed was set in a non maximum value is greater than the time of the collision that made the speed change
-
-                robot_api.un_pause(robot1.robotIP)  
-                robot_api.set_max_speed(robot_ip, str(robot1.absolutMaxSpeed))
-
+                    robot1.prevCollisionTime = 10000
             else:
-                robot1.prevCollisionTime = 10000
-        else:
-            pass
+                pass
+robot_ip="192.168.100.2"
+human1=robotHumanClass.human("5329")
+human2=robotHumanClass.human("5328")
+human3=robotHumanClass.human("5414")
+
+humans = getAllInstances(robotHumanClass.human)
+#robot1=robotHumanClass.human("5328")
+
+robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 7.5, 1.5)
+
+timeBetweenSamples = 0.25
+timetopredict = 10
+timeMargin = 1
+minimumEuclideanDistance = 1.5
+host = "192.168.100.153"  # Broker (Server) IP Address
+port = 1883
+topic = "tags"  # Defining a Topic on server
 
 #main functions
 human1.readyforPrediction = False
@@ -158,8 +168,10 @@ t_tag = Thread(target=run_tag)
 t_tag.start()
 
 #thread measurements
-human1_list = Thread(target=fillAndUpdatePositionListHuman, args=(4, 12, human1.xPath, human1.yPath))
-human1_list.start()
+for human in humans:
+    human1_list = Thread(target=fillAndUpdatePositionListHuman, args=(4, 12, human.xPath, human.yPath))
+    human1_list.start()
+
 #robot1_list = Thread(target=fillAndUpdatePositionListHuman, args=(4, 12, robot1.xPath, robot1.yPath))
 #robot1_list.start()
 t_prediction_robot = Thread(target=robotHumanClass.fillAndUpdatePositionListRobot, args=(4, 12, robot1.xPath, robot1.yPath, robot1))
