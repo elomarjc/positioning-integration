@@ -149,7 +149,7 @@ def mainFunc():
         D = initialized_points[3]
 
         robotStatus = robot_api.robot_status_direct("192.168.100.2")
-        orientation = robotStatus["position"]["orientation"]
+        orientation = robotStatus["position"]["orientation"]-90
         robotPosi = (map.convert_robot_position_for_unification(robotStatus['position']['x'], robotStatus['position']['y']))
 
         personInRobotFrame = homogeneousTransformation(orientation, tagPosi, robotPosi)
