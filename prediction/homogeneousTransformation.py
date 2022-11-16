@@ -4,20 +4,19 @@ import time
 import paho.mqtt.client as mqtt
 import json
 from threading import Thread
-
+import robotHumanClass
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1])
                 )  # can import files based on the parents path
 
 from robot import robot_api
-import tools.map
-
+from tools import map
 host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
 topic = "tags"  # Defining a Topic on server
+human1=robotHumanClass.human("5329")
 
-tagPosi = []
 
 def homogeneousTransformation (angle, pointToTransform, robotCoordenate): #pointToTransform and robotCoordenate are lists
     pointToTransformMatrix = np.array([])
@@ -50,10 +49,12 @@ def homogeneousTransformation (angle, pointToTransform, robotCoordenate): #point
                     [0, 0, 0, 1]]
     
     homogeneousTransformation = np.matmul(rotationInZ, traslationXY)
-    
-    transformationResult = np.matmul(homogeneousTransformation, pointToTransformMatrix)
-    
-    return [transformationResult[0], transformationResult[1]] #X and Y positions on robot frame
+    try:
+        transformationResult = np.matmul(homogeneousTransformation, pointToTransformMatrix)
+        return [transformationResult[0], transformationResult[1]] #X and Y positions on robot frame
+    except ValueError:
+        print("------VALUE ERROR------")
+        return [-100,-100]
 
 def personInNoPredictArea (topRightLimit, topLeftLimit, bottomRightLimit, bottomLeftLimit, personPosi): # since its a square, same X and Y will show twice    
     if (topRightLimit[0] > topLeftLimit[0]): #Check for x position
@@ -107,14 +108,16 @@ def on_message_tags(client, userdata, msg):  # defining the functions
         #      tag_id_from_json, coordinates_from_json)
         # write data into influxdb
         # use unified coordinates to write influxdb
-        influxdb_x, influxdb_y = tools.map.convert_uwb_position_for_unification(
+        influxdb_x, influxdb_y = map.convert_uwb_position_for_unification(
             float(coordinates_from_json["x"]),
             float(coordinates_from_json["y"]))
        # print(str(influxdb_x), str(influxdb_y),str(tag_id_from_json))
 
         if (str(tag_id_from_json) == "5328"): 
-            tagPosi[0] = (influxdb_x)
-            tagPosi[1] =(influxdb_y)
+            print(influxdb_x)
+            print(influxdb_y)
+            human1.xPath = [influxdb_x, influxdb_y]
+            print(human1.xPath)
 
     #time.sleep(1/4)
 def on_connect(client, userdata, flags, rc):  # defining the functions
@@ -141,18 +144,24 @@ def run_tag():
     print("disconnected")
 
 def mainFunc():
+    
+    initialized_points = initializeLimits(4, 4, 0.5)
+    A = initialized_points[0]
+    B = initialized_points[1]
+    C = initialized_points[2]
+    D = initialized_points[3]
     while True:
-        initialized_points = initializeLimits(4, 4, 0.5)
-        A = initialized_points[0]
-        B = initialized_points[1]
-        C = initialized_points[2]
-        D = initialized_points[3]
+ 
 
         robotStatus = robot_api.robot_status_direct("192.168.100.2")
         orientation = robotStatus["position"]["orientation"]-90
+        print("orientation")
+        print(orientation)
         robotPosi = (map.convert_robot_position_for_unification(robotStatus['position']['x'], robotStatus['position']['y']))
-
-        personInRobotFrame = homogeneousTransformation(orientation, tagPosi, robotPosi)
+        print(human1.xPath)
+        personInRobotFrame = homogeneousTransformation(orientation, human1.xPath, robotPosi)
+        print("PERSON IN ROBOT FRAME")
+        print(str(personInRobotFrame))
 
         if(personInNoPredictArea(A, B, C, D, personInRobotFrame)):
             print("The person is inside the No Predict Area")

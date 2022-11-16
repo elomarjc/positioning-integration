@@ -1,4 +1,4 @@
-
+import transformation
 from concurrent.futures import thread
 from typing import Counter
 import robotHumanClass
@@ -96,11 +96,21 @@ def main_functions():
     robot1.prevCollisionTime = 1000
     timeWhenSpeedWasDefined = 0
     deltaForMaxSpeed = 2
+    limits = transformation.initializeLimits(width = 4, length = 4, robotbooty = 0.5)
+    time.sleep(10)
     while True:  
 
         for human in humans:
-
-            if human.readyforPrediction:
+            robotStatus = robot_api.robot_status_direct(robot1.robotIP)
+            try:
+                orientation = robotStatus["position"]["orientation"]-90
+            except KeyError:
+                pass
+            humanInRobotFrame = transformation.homogeneousTransformation(orientation, [human.xPath[-1], human.yPath[-1]], [robot1.xPath[-1], robot1.yPath[-1]])
+            inside=transformation.personInNoPredictArea(limits[0], limits[1], limits[2], limits[3], humanInRobotFrame)
+            print("-----IS SOMEONE INSIDE NO PREDICT AREA????-----"+str(human.tagID))
+            print(inside)
+            if human.readyforPrediction and not inside:
                 #print(time.time())
                 human.readyforPrediction = False
                 robotXCoef, robotXinter = robotHumanClass.calculatePath (robot1.xPath, timeBetweenSamples)
@@ -115,10 +125,7 @@ def main_functions():
                 human.xPredictions = robotHumanClass.predictNextPositions (human.xPath, personXCoef, personXinter, timeBetweenSamples, timetopredict)
                 human.YPredictions = robotHumanClass.predictNextPositions (human.yPath, personYCoef, personYinter, timeBetweenSamples, timetopredict)       
                 robot1.collisionTime = robotHumanClass.timeToCollision(predictedRobotX, predictedRobotY, human.xPredictions, human.YPredictions, timeMargin, timeBetweenSamples, minimumEuclideanDistance)
-                print(human.tagID)
-                print(robot1.collisionTime)
-                print(str(time.time()))
-                if ((robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime)): #add time condition to be able to increase the speed to a non maximum value
+                if ((robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime) and not inside): #add time condition to be able to increase the speed to a non maximum value
                     robot1.prevCollisionTime = robot1.collisionTime
                     robot1.speedReference = robotHumanClass.neededSpeedReference(robot1)
 
