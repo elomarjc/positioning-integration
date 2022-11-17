@@ -125,7 +125,7 @@ def main_functions():
                 human.xPredictions = robotHumanClass.predictNextPositions (human.xPath, personXCoef, personXinter, timeBetweenSamples, timetopredict)
                 human.YPredictions = robotHumanClass.predictNextPositions (human.yPath, personYCoef, personYinter, timeBetweenSamples, timetopredict)       
                 robot1.collisionTime = robotHumanClass.timeToCollision(predictedRobotX, predictedRobotY, human.xPredictions, human.YPredictions, timeMargin, timeBetweenSamples, minimumEuclideanDistance)
-                if ((robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime) and not inside): #add time condition to be able to increase the speed to a non maximum value
+                if (robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime): #add time condition to be able to increase the speed to a non maximum value
                     robot1.prevCollisionTime = robot1.collisionTime
                     robot1.speedReference = robotHumanClass.neededSpeedReference(robot1)
 
