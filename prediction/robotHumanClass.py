@@ -8,7 +8,7 @@ import time
 from threading import Thread
 import sys
 from pathlib import Path
-
+from kalmanfilter import KalmanFilter
 from traitlets import Bool
 
 sys.path.append(str(Path(__file__).resolve().parents[1])
@@ -17,8 +17,9 @@ sys.path.append(str(Path(__file__).resolve().parents[1])
 from robot import robot_api
 from tools import map
 
-
+kf = KalmanFilter()
 warnings.filterwarnings("error")
+
 
              # controller -> move method:
 class robot: # finalXY -> self.move_x_entry.get()
@@ -190,6 +191,7 @@ def predictPaths(listOfX, listOfY): #output predictedYcoord and predictedXcoord
         return model.coef_, model.intercept_
     except ValueError:
         pass
+
 
     
 
