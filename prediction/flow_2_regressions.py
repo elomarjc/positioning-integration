@@ -12,9 +12,7 @@ import time
 from datetime import datetime, timedelta
 from all_class_instances import getAllInstances
 import warnings
-sys.path.append(str(Path(__file__).resolve().parents[1])
-                )  # can import files based on the parents path
-
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # can import files based on the parents path
 from robot import robot_api
 import tools.map
 import matplotlib.pyplot as plt
@@ -30,14 +28,9 @@ def on_message_tags(client, userdata, msg):  # defining the functions
     if (success_from_json):
         coordinates_from_json = json_object_from_mqtt[0]["data"]["coordinates"]
 
-       # print("[{}] Coordinates from UWB tag id:".format(time_log_str),
-        #      tag_id_from_json, coordinates_from_json)
-        # write data into influxdb
-        # use unified coordinates to write influxdb
         influxdb_x, influxdb_y = tools.map.convert_uwb_position_for_unification(
             float(coordinates_from_json["x"]),
             float(coordinates_from_json["y"]))
-       # print(str(influxdb_x), str(influxdb_y),str(tag_id_from_json))
         for human in humans:
             if (str(tag_id_from_json) == human.tagID): 
                 human.xPath.append(influxdb_x)
@@ -48,7 +41,7 @@ def on_message_tags(client, userdata, msg):  # defining the functions
                     human.readyforPrediction = True
                 else:
                     human.readingCounter = human.readingCounter+1
-    #time.sleep(1/4)
+
 def on_connect(client, userdata, flags, rc):  # defining the functions
     print(mqtt.connack_string(rc))
     pass
@@ -74,7 +67,7 @@ def run_tag():
 
 
 
-def fillAndUpdatePositionListHuman(positions_per_second, positions_saved, xList, yList):
+'''def fillAndUpdatePositionListHuman(positions_per_second, positions_saved, xList, yList):
     while True:
         
         try:
@@ -90,7 +83,7 @@ def fillAndUpdatePositionListHuman(positions_per_second, positions_saved, xList,
             time.sleep(1/positions_per_second)
         except Exception as e:
         
-            print(e)
+            print(e)'''
 
 def main_functions():
     robot1.prevCollisionTime = 1000
@@ -146,42 +139,42 @@ def main_functions():
                     robot1.prevCollisionTime = 10000
             else:
                 pass
-robot_ip="192.168.100.2"
-human1=robotHumanClass.human("5329")
-human2=robotHumanClass.human("5328")
-human3=robotHumanClass.human("5414")
 
-humans = getAllInstances(robotHumanClass.human)
-#robot1=robotHumanClass.human("5328")
 
-robot1=robotHumanClass.robot(robot_ip, 0.8, 0.1, 7.5, 1.5)
-
+#parameters
 timeBetweenSamples = 0.25
-timetopredict = 10
-timeMargin = 1
+timetopredict = 5
+lower_threshold=1.5
+robot_max_speed=0.8
+robot_min_speed=0.1
+timeMargin = 0.5
 minimumEuclideanDistance = 1.5
 host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
 topic = "tags"  # Defining a Topic on server
-
+positions_adquiered_per_second=4
+positions_for_the_predictions=12
+robot_ip="192.168.100.2"
+#create objects
+human1=robotHumanClass.human("5329")
+human2=robotHumanClass.human("5328")
+human3=robotHumanClass.human("5414")
+humans = getAllInstances(robotHumanClass.human)
+robot1=robotHumanClass.robot(robot_ip, robot_max_speed, robot_min_speed, timetopredict, lower_threshold)
 #main functions
-human1.readyforPrediction = False
-human1.readingCounter = 0
+human1.readyforPrediction, human2.readyforPrediction, human3.readyforPrediction = False
+human1.readingCounter, human2.readingCounter, human3.readingCounter = 0
 prediction = Thread(target=main_functions)
 prediction.start()
-
 #thread prediction
 t_tag = Thread(target=run_tag) 
 t_tag.start()
-
 #thread measurements
 for human in humans:
-    human1_list = Thread(target=fillAndUpdatePositionListHuman, args=(4, 12, human.xPath, human.yPath))
+    human1_list = Thread(target=robotHumanClass.fillAndUpdatePositionListHuman, args=(positions_adquiered_per_second, positions_for_the_predictions, human.xPath, human.yPath, human))
     human1_list.start()
 
-#robot1_list = Thread(target=fillAndUpdatePositionListHuman, args=(4, 12, robot1.xPath, robot1.yPath))
-#robot1_list.start()
-t_prediction_robot = Thread(target=robotHumanClass.fillAndUpdatePositionListRobot, args=(4, 12, robot1.xPath, robot1.yPath, robot1))
+t_prediction_robot = Thread(target=robotHumanClass.fillAndUpdatePositionListRobot, args=(positions_adquiered_per_second, positions_for_the_predictions, robot1.xPath, robot1.yPath, robot1))
 t_prediction_robot.start()
 
 
