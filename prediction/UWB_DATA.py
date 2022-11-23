@@ -4,10 +4,10 @@ import json
 import tools.map
 import paho.mqtt.client as mqtt
 import csv
+import time
 
 
-
-
+firstTime = time.time()
 host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
 topic = "tags"  # Defining a Topic on server
@@ -35,6 +35,12 @@ def on_message_tags(client, userdata, msg):  # defining the functions, humannumb
             human1.xPath.append(influxdb_x) #human1 honek bariable moduan izan biadia
             human1.yPath.append(influxdb_y)
             print(human1.xPath)
+            
+            
+            if (time.time()-firstTime > 2):
+                stopThread()
+                time.sleep(50)
+
 
 
     #time.sleep(1/4)
@@ -53,15 +59,27 @@ def run_tag():
     client.subscribe(topic)
     try:  # Here we are making a loop to run above program forever untill there is a KBD intrrupt occurs
         client.loop_forever()
-        
-
     except KeyboardInterrupt:
-        pass
-    client.disconnect()
-    client.loop_stop()
-    print("disconnected")
+        client.disconnect()
+        client.loop_stop()
+        print("disconnected")
+
 human1=robotHumanClass.human("5329")
 
+def stopThread():
+    print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+    fields = ["xPosition", "yPosition"]
+    rows = []
+    index = 0
+    while index <= len(human1.xPath):
+        newRow = [human1.xPath, human1.yPath]
+        rows.append(newRow)
+        index = index+1
+
+    with open("C:\\Users\\eliz_\\OneDrive\\Documentos\\MONDRAGON UNIBERTSITATEA\\4 MAILA\AAU 1st semester\\PBL\\phyton codes\\Latest_version_angle_area\\positioning-integration\\prediction\\UWPath.csv", "w+") as f:
+        write = csv.writer(f)
+        write.writerow(fields)
+        write.writerows(rows)
 
 t_tag = Thread(target=run_tag)
 t_tag.start()
