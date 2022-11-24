@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-df = pd.read_csv(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathForwardNBackward.csv")
+df = pd.read_csv(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathXYDirection.csv")
 shape = df.shape
 UWBPositionsX = []
 UWBPositionsY = []
@@ -25,8 +25,8 @@ plt.legend()     # show a legend on the plot
 plt.xlim(-5, 5)
 plt.grid("True")
 
-
 '''
+
 #Define needed lists and matrix
 
 UWBPositionsX = np.arange(31)
@@ -52,6 +52,7 @@ plt.figure()
 plt.scatter(UWBPositionsX, UWBPositionsY, label = "Measurements")
 plt.legend()     # show a legend on the plot
 plt.grid("True")
+
 '''
 
 #prediction list
@@ -67,18 +68,18 @@ def plotter(xMeasure, yMeasure, xEstimate, yEstimate, xPredict, yPredict):
     plt.scatter(xEstimate, yEstimate, label = "Estimates")
     plt.scatter(xPredict, yPredict, label = "Predictions")
     plt.legend()     # show a legend on the plot
-    plt.xlim(-5, 5)
+    #plt.xlim(-5, 5)
     plt.grid("True")
 
 # filter function
 def kalman_filter(x, P, xList, yList):
     # prediction
     x = F.dot(x)
-    P = F.dot(P).dot(F.transpose()) + Q
+    P = F.dot(P).dot(F.transpose()) +Q # no Q since we don't take acceleration into account.
 
     x_e.append(x[0])
-    y_e.append(x[3])
-    print("Iteration number: ", 0, "\n", "p-value: ","\n", P, "\n", "x-value: ", x[0], "\n", "y-value: ", x[3], "\n")
+    y_e.append(x[2])
+    print("Iteration number: ", 0, "\n", "p-value: ","\n", P, "\n", "x-value: ", x[0], "\n", "y-value: ", x[2], "\n")
     x_print=np.array([])
     y_print=np.array([])
     counter = 0
@@ -89,11 +90,11 @@ def kalman_filter(x, P, xList, yList):
         s = H.dot(P).dot(H.transpose()) + R
         K = P.dot(H.transpose()).dot(np.linalg.inv(s))
         x = x + K.dot(y)
-        P = (np.identity(6) - K.dot(H)).dot(P) #.dot(np.identity(6)-K.dot(H)).transpose()+K.dot(R).dot(K.transpose())
+        P = (np.identity(4) - K.dot(H)).dot(P) #.dot(np.identity(4)-K.dot(H)).transpose()+K.dot(R).dot(K.transpose())
              
         # prediction
         x = F.dot(x)
-        P = F.dot(P).dot(F.transpose()) + Q
+        P = F.dot(P).dot(F.transpose()) + Q # no Q since we don't take acceleration into account.
 
         # 3 predictions ahead of current esimation
         xTemp = x
@@ -102,12 +103,11 @@ def kalman_filter(x, P, xList, yList):
         y_p=np.array([])
 
         x_p = np.append(x_p, x[0])
-        y_p = np.append(y_p, x[3])
+        y_p = np.append(y_p, x[2])
         print("xTemp: ", xTemp) 
-        print("x_list: ", xList) 
         print("y: ", y)   
         print("x_p first: ", x_p)    
-        print("y_p first: ", y_p)     
+        print("y_p first: ", y_p)  
 
         for n in range(9): # range 3 is equal to 4 predictions
             # measurement update
@@ -116,34 +116,35 @@ def kalman_filter(x, P, xList, yList):
             sTemp = H.dot(pTemp).dot(H.transpose()) + R
             kTemp = pTemp.dot(H.transpose()).dot(np.linalg.inv(sTemp))
             print("x_p later: ", x_p[0]) 
-            print("y_p later: ", y_p[0])   
+            print("y_p later: ", y_p[0])  
+            #print("yTemp: ", yTemp)    
+            print("kTemp: ", kTemp)  
     
             xTemp = xTemp + kTemp.dot(yTemp)
-            pTemp = (np.identity(6) - kTemp.dot(H)).dot(pTemp) #.dot(np.identity(6)-kTemp.dot(H)).transpose()+kTemp.dot(R).dot(kTemp.transpose())
-                
+            pTemp = (np.identity(4) - kTemp.dot(H)).dot(pTemp)
+            
             # prediction
             xTemp = F.dot(xTemp)
-            print("xTemp: ", xTemp)
-            pTemp = F.dot(pTemp).dot(F.transpose()) + Q
+            pTemp = F.dot(pTemp).dot(F.transpose()) + Q # No Q
             
             x_p = np.append(x_p, xTemp[0])
-            y_p = np.append(y_p, xTemp[3])
+            y_p = np.append(y_p, xTemp[2])
             if counter == 22:
 
                 x_print = np.append(x_print, x_p)
                 y_print = np.append(y_print, y_p)
             else:
-                pass
+                 pass
             #print("4 Predictions: ", "\n", "x-value: ", x_p, "\n", "y-value: ", y_p, "\n")
 
         x_e.append(x[0])
-        y_e.append(x[3])
+        y_e.append(x[2])
         
         print("4 Predictions: ", "\n", "x-value: ", x_p, "\n", "y-value: ", y_p, "\n")
 
     return x_p, y_p, x_print, y_print
-        #print("Iteration number: ", n+1, "\n", "Measurement: ", "\n", np.array([[xList[n]],[yList[n]]]), "\n", "k-gain: ", "\n", K, "\n", "p-value: ","\n", P, "\n", "x-value: ", x[0], "\n", "y-value: ", x[3], "\n")
-        #print("x-value: ", x[0], "\n", "y-value: ", x[3], "\n")
+        #print("Iteration number: ", n+1, "\n", "Measurement: ", "\n", np.array([[xList[n]],[yList[n]]]), "\n", "k-gain: ", "\n", K, "\n", "p-value: ","\n", P, "\n", "x-value: ", x[0], "\n", "y-value: ", x[2], "\n")
+        #print("x-value: ", x[0], "\n", "y-value: ", x[2], "\n")
     #return x, P
 
 #Measurements list
@@ -155,41 +156,31 @@ x_e=[]
 y_e=[]
 
 #Definetions
-dt=0.25 
-sigma_a = 2  # variance in acceleration
-sigma_xm, sigma_ym = 3, 3 # measurement uncertainty
-p_u = 500 # initial uncertainty in p matrix
+dt=0.25
+p_u = 500 # uncertainty in p matrix
+sigma_v = 10 
+sigma_xm, sigma_ym = 3, 3
 
 x = np.array([[0.],
-            [0.],
-            [0.],
-            [0.],
-            [0.],
-            [0.]]) # initial state (location and velocity)
-P = np.array([[p_u, 0., 0., 0., 0., 0.], 
-            [0., p_u, 0., 0., 0., 0.],
-            [0., 0., p_u, 0., 0., 0.],
-            [0., 0., 0., p_u, 0., 0.],
-            [0., 0., 0., 0., p_u, 0.],
-            [0., 0., 0., 0., 0., p_u]]) # initial uncertainty
-
-Q = np.array([[dt**4/4, dt**3/2, dt**2/2, 0., 0., 0.], 
-            [dt**3/2, dt**2, dt, 0., 0.,0.],
-            [dt**2/2, dt, 1, 0., 0., 0.],
-            [0., 0., 0., dt**4/4, dt**3/2, dt**2/2],
-            [0., 0.,  0., dt**3/2, dt**2, dt],
-            [0.,0., 0., dt**2/2, dt, 1]])*sigma_a**2 # external motion - HARDCODED WITH sigma_a^2
-
-F = np.array([[1., dt, 0.5*dt**2, 0., 0., 0.], 
-              [0., 1., dt, 0., 0., 0.],
-              [0., 0., 1., 0., 0., 0.],
-              [0., 0., 0., 1., dt, 0.5*dt**2],
-              [0., 0., 0., 0., 1., dt],
-              [0., 0., 0., 0., 0., 1.]]) # next state function
-H = np.array([[1., 0., 0., 0., 0., 0.], 
-            [0., 0., 0., 1., 0., 0.]]) # measurement function
+              [0.],
+              [0.],
+              [0.]]) # initial state (location and velocity)
+P = np.array([[p_u, 0., 0. ,0], 
+              [0., p_u, 0, 0],
+              [0., 0, p_u, 0],
+              [0., 0, 0, p_u]]) # initial uncertainty
+Q = np.array([[dt**4/4, dt**3/2, 0. ,0], 
+              [dt**3/2, dt**2, 0, 0],
+              [0, 0, dt**4/4, dt**3/2],
+              [0., 0, dt**3/2, dt**2]])*sigma_v**2 # noise matrix
+F = np.array([[1, dt, 0, 0],
+              [0, 1, 0, 0],
+              [0, 0, 1, dt],
+              [0, 0, 0, 1]]) # next state function - transi
+H = np.array([[1, 0, 0, 0],
+              [0, 0, 1, 0]]) # measurement function
 R = np.array([[sigma_xm**2,0],
-            [0,sigma_ym**2]]) # measurement uncertainty
+              [0,sigma_ym**2]]) # measurement uncertainty
 
 
 #Calling functions
@@ -206,16 +197,15 @@ plotter(UWBPositionsX, UWBPositionsY, x_e, y_e, x_p,y_p)
 plt.figure()
 plt.plot(x_p, y_p)
 plt.grid("True")
-plt.xlim(-5, 5)
 
 print("Final x values:", x_p)
 print("Final y values:", y_p)
+print("-----------------")
+print(Q)
 
 plt.figure()
 plt.scatter(UWBPositionsX, UWBPositionsY, label = "Real data")
 plt.scatter(x_print, y_print, label = "All predictions")
 plt.grid("True")
 plt.legend()
-plt.xlim(-5, 5)
 plt.show()       # function to show the plot
-
