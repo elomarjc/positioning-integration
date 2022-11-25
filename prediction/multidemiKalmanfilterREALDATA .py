@@ -5,26 +5,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 
+def CSVforData(filepath):
+    UWBPositionsX = []
+    UWBPositionsY = []
+    
+    df = pd.read_csv(filepath)
+    shape = df.shape
+    index = 0
 
-df = pd.read_csv(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathForwardNBackward.csv")
-shape = df.shape
-UWBPositionsX = []
-UWBPositionsY = []
-index = 0
+    while index < shape[0]:
+        UWBPositionsX.append(df.iloc[index, 0])
+        UWBPositionsY.append(df.iloc[index, 1])
+        index = index+1
+    return UWBPositionsX, UWBPositionsY
 
-while index < shape[0]:
-    UWBPositionsX.append(df.iloc[index, 0])
-    UWBPositionsY.append(df.iloc[index, 1])
-    index = index+1
-
-print(UWBPositionsX)
-plt.figure()
-plt.scatter(UWBPositionsX, UWBPositionsY, label = "Measurements")
-plt.legend()     # show a legend on the plot
-plt.xlim(-5, 5)
-plt.grid("True")
-
+def simulation():
+    plt.figure()
+    plt.grid("True")
+    plt.scatter(UWBPositionsX[0: 20], UWBPositionsY [0: 20], label = "UWB pos. for prediction", color = "r", marker = "1")
+    plt.scatter(x_print, y_print, label= "Predicted positions", color = "g", marker = "2")
+    plt.scatter(UWBPositionsX[21: -1], UWBPositionsY [21: -1], label = "Real future positions", color = "b", marker = "3")
+    plt.xlim(-10, 10)
+    plt.xlabel('X position [m]')
+    plt.ylabel('Y position [m]')
+    plt.legend() 
 
 '''
 #Define needed lists and matrix
@@ -109,7 +115,7 @@ def kalman_filter(x, P, xList, yList):
         print("x_p first: ", x_p)    
         print("y_p first: ", y_p)     
 
-        for n in range(9): # range 3 is equal to 4 predictions
+        for n in range(15): # range 3 is equal to 4 predictions
             # measurement update
             yTemp = np.array([[x_p[n]],[y_p[n]]]) - H.dot(xTemp)
             print("y_temp: ", yTemp)
@@ -128,7 +134,7 @@ def kalman_filter(x, P, xList, yList):
             
             x_p = np.append(x_p, xTemp[0])
             y_p = np.append(y_p, xTemp[3])
-            if counter == 22:
+            if counter == 20:
 
                 x_print = np.append(x_print, x_p)
                 y_print = np.append(y_print, y_p)
@@ -193,29 +199,49 @@ R = np.array([[sigma_xm**2,0],
 
 
 #Calling functions
+UWBPositionsX, UWBPositionsY = CSVforData(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathXYDirection.csv")
 x_p, y_p, x_print, y_print = kalman_filter(x, P, UWBPositionsX, UWBPositionsY)
+simulation()
+plt.title("UWPathXYDirection - CA") 
 
-print("-----------------")
-print(x_print)
-print("-----------------")
+UWBPositionsX, UWBPositionsY = CSVforData(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathForwardNBackward.csv")
+x_p, y_p, x_print, y_print = kalman_filter(x, P, UWBPositionsX, UWBPositionsY)
+simulation()
+plt.title("UWPathForwardNBackward - CA") 
 
-#Plot graphs
-plotter(UWBPositionsX, UWBPositionsY, x_e, y_e, x_p,y_p)
-#plotter(UWBPositionsX, UWBPositionsY, x_e[4:35], y_e[4:35], x_p,y_p)
+UWBPositionsX, UWBPositionsY = CSVforData(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathYDirection.csv")
+x_p, y_p, x_print, y_print = kalman_filter(x, P, UWBPositionsX, UWBPositionsY)
+simulation()
+plt.title("UWPathYDirection - CA") 
 
-plt.figure()
-plt.plot(x_p, y_p)
-plt.grid("True")
-plt.xlim(-5, 5)
-
-print("Final x values:", x_p)
-print("Final y values:", y_p)
-
-plt.figure()
-plt.scatter(UWBPositionsX, UWBPositionsY, label = "Real data")
-plt.scatter(x_print, y_print, label = "All predictions")
-plt.grid("True")
-plt.legend()
-plt.xlim(-5, 5)
 plt.show()       # function to show the plot
+
+plt.show()       # function to show the plot
+
+# #Calling functions
+# x_p, y_p, x_print, y_print = kalman_filter(x, P, UWBPositionsX, UWBPositionsY)
+
+# print("-----------------")
+# print(x_print)
+# print("-----------------")
+
+# #Plot graphs
+# plotter(UWBPositionsX, UWBPositionsY, x_e, y_e, x_p,y_p)
+# #plotter(UWBPositionsX, UWBPositionsY, x_e[4:35], y_e[4:35], x_p,y_p)
+
+# plt.figure()
+# plt.plot(x_p, y_p)
+# plt.grid("True")
+# plt.xlim(-5, 5)
+
+# print("Final x values:", x_p)
+# print("Final y values:", y_p)
+
+# plt.figure()
+# plt.scatter(UWBPositionsX, UWBPositionsY, label = "Real data")
+# plt.scatter(x_print, y_print, label = "All predictions")
+# plt.grid("True")
+# plt.legend()
+# plt.xlim(-5, 5)
+# plt.show()       # function to show the plot
 

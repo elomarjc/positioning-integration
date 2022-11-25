@@ -7,23 +7,45 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-df = pd.read_csv(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathXYDirection.csv")
-shape = df.shape
-UWBPositionsX = []
-UWBPositionsY = []
-index = 0
+def CSVforData(filepath):
+    UWBPositionsX = []
+    UWBPositionsY = []
+    
+    df = pd.read_csv(filepath)
+    shape = df.shape
+    index = 0
 
-while index < shape[0]:
-    UWBPositionsX.append(df.iloc[index, 0])
-    UWBPositionsY.append(df.iloc[index, 1])
-    index = index+1
+    while index < shape[0]:
+        UWBPositionsX.append(df.iloc[index, 0])
+        UWBPositionsY.append(df.iloc[index, 1])
+        index = index+1
+    return UWBPositionsX, UWBPositionsY
 
-print(UWBPositionsX)
-plt.figure()
-plt.scatter(UWBPositionsX, UWBPositionsY, label = "Measurements")
-plt.legend()     # show a legend on the plot
-plt.xlim(-5, 5)
-plt.grid("True")
+def simulation():
+    plt.figure()
+    plt.grid("True")
+    plt.scatter(UWBPositionsX[0: 20], UWBPositionsY [0: 20], label = "UWB pos. for prediction", color = "r", marker = "1")
+    plt.scatter(x_print, y_print, label= "Predicted positions", color = "g", marker = "2")
+    plt.scatter(UWBPositionsX[21: -1], UWBPositionsY [21: -1], label = "Real future positions", color = "b", marker = "3")
+    plt.xlim(-10, 10)
+    plt.xlabel('X position [m]')
+    plt.ylabel('Y position [m]')
+    plt.legend() 
+
+# plt.figure()
+# plt.scatter(xMeasure, yMeasure, label = "Measurements")
+# plt.scatter(xEstimate, yEstimate, label = "Estimates")
+# plt.scatter(xPredict, yPredict, label = "Predictions")
+# plt.legend()     # show a legend on the plot
+# #plt.xlim(-5, 5)
+# plt.grid("True")
+
+# print(UWBPositionsX)
+# plt.figure()
+# plt.scatter(UWBPositionsX, UWBPositionsY, label = "Measurements")
+# plt.legend()     # show a legend on the plot
+# plt.xlim(-5, 5)
+# plt.grid("True")
 
 '''
 
@@ -109,7 +131,7 @@ def kalman_filter(x, P, xList, yList):
         print("x_p first: ", x_p)    
         print("y_p first: ", y_p)  
 
-        for n in range(9): # range 3 is equal to 4 predictions
+        for n in range(15): # range 3 is equal to 4 predictions
             # measurement update
             yTemp = np.array([[x_p[n]],[y_p[n]]]) - H.dot(xTemp)
             print("y_temp: ", yTemp)
@@ -129,7 +151,7 @@ def kalman_filter(x, P, xList, yList):
             
             x_p = np.append(x_p, xTemp[0])
             y_p = np.append(y_p, xTemp[2])
-            if counter == 22:
+            if counter == 20:
 
                 x_print = np.append(x_print, x_p)
                 y_print = np.append(y_print, y_p)
@@ -158,7 +180,7 @@ y_e=[]
 #Definetions
 dt=0.25
 p_u = 500 # uncertainty in p matrix
-sigma_v = 10 
+sigma_v = 6 
 sigma_xm, sigma_ym = 3, 3
 
 x = np.array([[0.],
@@ -184,8 +206,29 @@ R = np.array([[sigma_xm**2,0],
 
 
 #Calling functions
+UWBPositionsX, UWBPositionsY = CSVforData(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathXYDirection.csv")
 x_p, y_p, x_print, y_print = kalman_filter(x, P, UWBPositionsX, UWBPositionsY)
+simulation()
+plt.title("UWPathXYDirection - CV") 
 
+UWBPositionsX, UWBPositionsY = CSVforData(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathForwardNBackward.csv")
+x_p, y_p, x_print, y_print = kalman_filter(x, P, UWBPositionsX, UWBPositionsY)
+simulation()
+plt.title("UWPathForwardNBackward - CV") 
+
+UWBPositionsX, UWBPositionsY = CSVforData(r"/Users/jacobel-omar/Desktop/Movement-data/UWPathYDirection.csv")
+x_p, y_p, x_print, y_print = kalman_filter(x, P, UWBPositionsX, UWBPositionsY)
+simulation()
+plt.title("UWPathYDirection - CV") 
+
+plt.show()       # function to show the plot
+
+
+
+
+"/Users/jacobel-omar/Desktop/Movement-data/UWPathXYDirection.csv"
+
+'''
 print("-----------------")
 print(x_print)
 print("-----------------")
@@ -208,4 +251,5 @@ plt.scatter(UWBPositionsX, UWBPositionsY, label = "Real data")
 plt.scatter(x_print, y_print, label = "All predictions")
 plt.grid("True")
 plt.legend()
-plt.show()       # function to show the plot
+'''
+# plt.show()       # function to show the plot
