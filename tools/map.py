@@ -2,7 +2,7 @@ from PIL import Image, ImageTk
 import tkinter
 
 # open the image of the lab map
-image_file = Image.open("images/Raw_smart_lab(6).png")
+'''image_file = Image.open("images/Raw_smart_lab(6).png")
 map_width = image_file.width  # pixel
 map_height = image_file.height  # pixel
 
@@ -44,7 +44,7 @@ new_letter_b_icon = letter_b_icon.resize((icon_width, icon_height),
 # cut_map_height = 865 - 19 = 846
 top_cut = 19
 left_cut = 678
-right_cut = map_width - 1004
+right_cut = map_width - 100
 bottom_cut = map_height - 865
 cut_map_width = map_width - right_cut - left_cut
 cut_map_height = map_height - bottom_cut - top_cut
@@ -66,7 +66,7 @@ cut_map_height = map_height - bottom_cut - top_cut
 # Now we are changing our policy, and we will only use the offset of UWB, and we will convert the CV positions and Robot positions to UWB positions before the conversion using the offset values.
 # uwbx+uwbxoffset = robotx+robotxoffset
 # uwbx = robotx + robotxoffset - uwbxoffset
-# So, robot2uwb_x = robot_x_offset - uwb_x_offset = -855 pixel
+# So, robot2uwb_x = robot_x_offset - uwb_x_offset = -855 pixel'''
 # ---------------------------------
 
 # unit pixel

@@ -66,29 +66,11 @@ def run_tag():
     print("disconnected")
 
 
-
-'''def fillAndUpdatePositionListHuman(positions_per_second, positions_saved, xList, yList):
-    while True:
-        
-        try:
-            if len(xList) != len(yList): # Handles the case where xPath and yPath have a different number of elements, though I don't see how that could happen
-                print("ERROR in positional tracking. Resetting position list") # This message should maybe be sent somewhere other than the terminal, if it is needed at all
-                xList.clear()
-                yList.clear()
-            elif len(xList) > positions_saved:
-                del xList[0]
-                del yList[0]
-            if (human1.readingCounter%positions_per_second == 0 and human1.readingCounter != 0):
-                pass
-            time.sleep(1/positions_per_second)
-        except Exception as e:
-        
-            print(e)'''
-
 def main_functions():
     robot1.prevCollisionTime = 1000
     timeWhenSpeedWasDefined = 0
-    deltaForMaxSpeed = 2
+    deltaForMaxSpeed = 3
+    orientation = 90
     limits = transformation.initializeLimits(width = 4, length = 4, robotbooty = 0.5)
     time.sleep(10)
     while True:  
@@ -101,10 +83,8 @@ def main_functions():
                 pass
             humanInRobotFrame = transformation.homogeneousTransformation(orientation, [human.xPath[-1], human.yPath[-1]], [robot1.xPath[-1], robot1.yPath[-1]])
             inside=transformation.personInNoPredictArea(limits[0], limits[1], limits[2], limits[3], humanInRobotFrame)
-            print("-----IS SOMEONE INSIDE NO PREDICT AREA????-----"+str(human.tagID))
-            print(inside)
+        
             if human.readyforPrediction and not inside:
-                #print(time.time())
                 human.readyforPrediction = False
                 robotXCoef, robotXinter = robotHumanClass.calculatePath (robot1.xPath, timeBetweenSamples)
                 robotYCoef, robotYinter = robotHumanClass.calculatePath (robot1.yPath, timeBetweenSamples)
@@ -118,20 +98,18 @@ def main_functions():
                 human.xPredictions = robotHumanClass.predictNextPositions (human.xPath, personXCoef, personXinter, timeBetweenSamples, timetopredict)
                 human.YPredictions = robotHumanClass.predictNextPositions (human.yPath, personYCoef, personYinter, timeBetweenSamples, timetopredict)       
                 robot1.collisionTime = robotHumanClass.timeToCollision(predictedRobotX, predictedRobotY, human.xPredictions, human.YPredictions, timeMargin, timeBetweenSamples, minimumEuclideanDistance)
-                if (robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime): #add time condition to be able to increase the speed to a non maximum value
+                if (robot1.collisionTime != -1) and (robot1.collisionTime <=  robot1.prevCollisionTime): 
                     robot1.prevCollisionTime = robot1.collisionTime
                     robot1.speedReference = robotHumanClass.neededSpeedReference(robot1)
 
                     timeWhenSpeedWasDefined = time.time()
                     if robot1.speedReference == 0:
                         robot_api.pause(robot1.robotIP)
-                        print("STOOOOOPPPPPPPPPPP")
                     else:
                         robot_api.un_pause(robot1.robotIP)
                         print(robot1.speedReference)
                         robot_api.set_max_speed(robot_ip, str(robot1.speedReference))
-                elif ((time.time()>timeWhenSpeedWasDefined+deltaForMaxSpeed)): #on the elif statement we should make the robot go in maximum speed when the time since the robot's speed was set in a non maximum value is greater than the time of the collision that made the speed change
-
+                elif ((time.time()>timeWhenSpeedWasDefined+deltaForMaxSpeed)): 
                     robot_api.un_pause(robot1.robotIP)  
                     robot_api.set_max_speed(robot_ip, str(robot1.absolutMaxSpeed))
 
@@ -147,7 +125,7 @@ timetopredict = 6
 lower_threshold=1.5
 robot_max_speed=0.8
 robot_min_speed=0.1
-timeMargin = 0.5
+timeMargin = 0.25
 minimumEuclideanDistance = 1.5
 host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
@@ -162,8 +140,12 @@ human3=robotHumanClass.human("5414")
 humans = getAllInstances(robotHumanClass.human)
 robot1=robotHumanClass.robot(robot_ip, robot_max_speed, robot_min_speed, timetopredict, lower_threshold)
 #main functions
-human1.readyforPrediction, human2.readyforPrediction, human3.readyforPrediction = False
-human1.readingCounter, human2.readingCounter, human3.readingCounter = 0
+human1.readyforPrediction = False
+human2.readyforPrediction = False
+human3.readyforPrediction = False
+human1.readingCounter = 0
+human2.readingCounter = 0
+human3.readingCounter = 0
 prediction = Thread(target=main_functions)
 prediction.start()
 #thread prediction
