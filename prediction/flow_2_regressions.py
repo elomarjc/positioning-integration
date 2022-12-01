@@ -143,7 +143,7 @@ def main_functions():
 
 #parameters
 timeBetweenSamples = 0.25
-timetopredict = 5
+timetopredict = 6
 lower_threshold=1.5
 robot_max_speed=0.8
 robot_min_speed=0.1
@@ -153,7 +153,7 @@ host = "192.168.100.153"  # Broker (Server) IP Address
 port = 1883
 topic = "tags"  # Defining a Topic on server
 positions_adquiered_per_second=4
-positions_for_the_predictions=12
+positions_for_the_predictions=16
 robot_ip="192.168.100.2"
 #create objects
 human1=robotHumanClass.human("5329")
