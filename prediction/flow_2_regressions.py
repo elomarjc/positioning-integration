@@ -122,7 +122,7 @@ def main_functions():
 #parameters
 timeBetweenSamples = 0.25
 timetopredict = 6
-lower_threshold=1.5
+lower_threshold=0.5
 robot_max_speed=0.8
 robot_min_speed=0.1
 timeMargin = 0.25
